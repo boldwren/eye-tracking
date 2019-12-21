@@ -1,0 +1,3 @@
+[submodule "learnopencv"]
+	path = learnopencv
+	url = https://github.com/spmallick/learnopencv/
