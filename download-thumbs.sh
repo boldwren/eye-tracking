@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+TIMEOUT=/usr/local/Cellar/coreutils/*/bin/timeout
+
+
+cd thumbs
+
+curl https://www.pornhub.com/categories |
+    pup '#categoriesListSection > li.cat_pic.alpha > div > a json{}' |
+    jq 'map(.alt + .href)' |
+    grep --only-matching '[^"]*/[^"]*' |
+    shuf |
+    (
+        IFS=$'\n'
+        while read category;
+        do
+            name=$(echo $category | cut -d / -f 1)
+            href=$(echo $category | cut -d / -f 2-)
+            if echo $href | grep -q -F '?'
+            then 
+                href="${href}&page=1"
+            else
+                href="${href}?page=1"
+            fi
+
+            if [ -f $name/thumbs.urls ]
+            then
+                continue
+            fi
+
+            mkdir -p $name
+            (
+                cd $name
+                $TIMEOUT 60 youtube-dl \
+                    --get-thumbnail \
+                    --skip-download \
+                    "https://www.pornhub.com/${href}" > thumbs.urls
+                wget --input-file thumbs.urls
+            )
+        done;
+    )
+
+# clean up empty files
+wc -l */thumbs.urls |
+    sort -g |
+    head -n 10 |
+    grep '^ *[0-9] ' |
+    sed 's/^ *[0-9] //' |
+    (
+        IFS=$'\n'
+        while read file;
+        do
+            mv "$file" "$file-$(date +%s)"
+        done
+    )
