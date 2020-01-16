@@ -16,7 +16,7 @@ defusedxml==0.6.0
 dlib==19.19.0
 entrypoints==0.3
 faced==0.1
-Flask==0.12.4
+Flask==1.0
 Flask-Compress==1.4.0
 Flask-SocketIO==2.9.6
 gast==0.2.2
