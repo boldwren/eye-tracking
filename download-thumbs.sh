@@ -9,15 +9,15 @@ cd thumbs
 
 curl https://www.pornhub.com/categories |
     pup '#categoriesListSection > li.cat_pic.alpha > div > a json{}' |
-    jq 'map(.alt + .href)' |
-    grep --only-matching '[^"]*/[^"]*' |
+    jq 'map(.alt + ":" + .href)' |
+    grep --only-matching '[^"]*:[^"]*' |
     shuf |
     (
         IFS=$'\n'
         while read category;
         do
-            name=$(echo $category | cut -d / -f 1)
-            href=$(echo $category | cut -d / -f 2-)
+            name=$(echo $category | cut -d : -f 1 | sed s:/:-:g)
+            href=$(echo $category | cut -d : -f 2-)
             if echo $href | grep -q -F '?'
             then 
                 href="${href}&page=1"
@@ -36,7 +36,7 @@ curl https://www.pornhub.com/categories |
                 $TIMEOUT 60 youtube-dl \
                     --get-thumbnail \
                     --skip-download \
-                    "https://www.pornhub.com/${href}" > thumbs.urls
+                    "https://www.pornhub.com${href}" > thumbs.urls
                 wget --input-file thumbs.urls
             )
         done;
@@ -46,12 +46,15 @@ curl https://www.pornhub.com/categories |
 wc -l */thumbs.urls |
     sort -g |
     head -n 10 |
-    grep '^ *[0-9] ' |
-    sed 's/^ *[0-9] //' |
+    grep '^ *[ 12][0-9] ' |
+    sed 's/^ *[ 12][0-9] //' |
     (
+        ret=0
         IFS=$'\n'
         while read file;
         do
             mv "$file" "$file-$(date +%s)"
+            ret=1
         done
+        exit $ret
     )
