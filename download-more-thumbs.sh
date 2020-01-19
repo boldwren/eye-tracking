@@ -7,7 +7,8 @@ TIMEOUT=/usr/local/Cellar/coreutils/*/bin/timeout
 function expand_url(){
     moredir="$1"
     url="$2"
-    for i in `seq 100`
+    count="$3"
+    for i in `seq $count 0`
     do
         maybe_url=$(echo "$url" | sed 's/[0-9]*[.]jpg$'/"$i.jpg"/)
         $TIMEOUT 10 wget \
@@ -23,7 +24,7 @@ function expand_url(){
 
 function fix_dir(){
     dir="$1"
-    moredir="more$dir"
+    moredir="better$dir"
 
     (diff <(ls "$dir") <(ls "$moredir") || true) |
         (grep '^<.*[0-9].jpg$' || true)|
@@ -42,19 +43,21 @@ function fix_dir(){
 
 function expand_dir(){
     dir="$1"
-    moredir="more$dir"
+    moredir="better$dir"
     if [ -d "$moredir" ]
     then
         return
     fi
     mkdir -p "$moredir"
 
-    cat $dir/thumbs.urls |
+    cat $dir/more-info.txt |
         (
             IFS=$'\n'
-            while read url;
+            while read line;
             do
-                expand_url "${moredir}" "${url}"
+                url=$(echo $line | cut -d § -f 2)
+                count=$(echo $line | cut -d § -f 3)
+                expand_url "${moredir}" "${url}" "${count}"
             done
         )
 }
@@ -67,7 +70,7 @@ function expand_all(){
             while read dir;
             do
                 expand_dir "${dir}"
-                fix_dir "${dir}"
+                # fix_dir "${dir}"
             done
         )
 }
