@@ -43,9 +43,13 @@ function fix_dir(){
 
 function expand_dir(){
     dir="$1"
+    limit="$2"
     moredir="better$dir"
-    if [ -d "$moredir" ]
+
+    count=$(find "$moredir" | grep '[0-9][.]jpg$' | wc -l)
+    if [ $count -gt $limit ]
     then
+        echo "$dir already done $count"
         return
     fi
     mkdir -p "$moredir"
@@ -63,16 +67,21 @@ function expand_dir(){
 }
 
 function expand_all(){
-    ls -d thumbs/*/ |
-        shuf |
-        (
-            IFS=$'\n'
-            while read dir;
-            do
-                expand_dir "${dir}"
-                # fix_dir "${dir}"
-            done
-        )
+    for limit in `seq 200 10 500`
+    do
+        ls -d thumbs/*/ |
+            shuf |
+            (
+                IFS=$'\n'
+                while read dir;
+                do
+                    expand_dir "${dir}" "${limit}"
+                    # fix_dir "${dir}"
+                done
+            )
+    done
 }
 
 expand_all
+
+# expand_dir thumbs/Bondage
