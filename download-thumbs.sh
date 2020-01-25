@@ -5,7 +5,8 @@ set -euxo pipefail
 TIMEOUT=/usr/local/Cellar/coreutils/*/bin/timeout
 
 
-cd thumbs
+mkdir -p mostviewed
+cd mostviewed
 
 curl https://www.pornhub.com/categories |
     pup '#categoriesListSection > li.cat_pic.alpha > div > a json{}' |
@@ -20,9 +21,9 @@ curl https://www.pornhub.com/categories |
             href=$(echo $category | cut -d § -f 2-)
             if echo $href | grep -q -F '?'
             then 
-                href="${href}&page=1"
+                href="${href}&o=mv&t=y&cc=gb&hd=1&page=1"
             else
-                href="${href}?page=1"
+                href="${href}?o=mv&t=y&cc=gb&hd=1&page=1"
             fi
 
             if [ -f $name/more-info.txt ]
@@ -53,18 +54,18 @@ curl https://www.pornhub.com/categories |
     )
 
 # clean up empty files
-# wc -l */thumbs.urls |
-#     sort -g |
-#     head -n 10 |
-#     grep '^ *[ 12][0-9] ' |
-#     sed 's/^ *[ 12][0-9] //' |
-#     (
-#         ret=0
-#         IFS=$'\n'
-#         while read file;
-#         do
-#             mv "$file" "$file-$(date +%s)"
-#             ret=1
-#         done
-#         exit $ret
-#     )
+wc -l */more-info.txt |
+    sort -g |
+    head -n 10 |
+    grep '^ *[ 12][0-9] ' |
+    sed 's/^ *[ 12][0-9] //' |
+    (
+        ret=0
+        IFS=$'\n'
+        while read file;
+        do
+            mv "$file" "$file-$(date +%s)"
+            ret=1
+        done
+        exit $ret
+    )

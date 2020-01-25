@@ -4,6 +4,9 @@ set -euo pipefail
 
 TIMEOUT=/usr/local/Cellar/coreutils/*/bin/timeout
 
+mkdir -p all-thumbs
+mkdir -p thumbs-mostviewed
+
 function expand_url(){
     moredir="$1"
     url="$2"
@@ -11,23 +14,25 @@ function expand_url(){
     for i in `seq $count 0`
     do
         maybe_url=$(echo "$url" | sed 's/[0-9]*[.]jpg$'/"$i.jpg"/)
+        maybe_file=$(echo "$maybe_url" | sed s:^.*/::)
         $TIMEOUT 10 wget \
-            --directory-prefix="$moredir" \
+            --directory-prefix=all-thumbs \
             --timeout=10 \
             --no-clobber \
             --no-verbose \
             "$maybe_url" \
             || break
+        cp -v all-thumbs/$maybe_file $moredir
     done
 }
 
 
 function fix_dir(){
     dir="$1"
-    moredir="better$dir"
+    moredir="thumbs-$dir"
 
     (diff <(ls "$dir") <(ls "$moredir") || true) |
-        (grep '^<.*[0-9].jpg$' || true)|
+        (grep '^<.*[0-9].jpg$' || true) |
         (sed 's/^< //' || true) |
         shuf |
         (
@@ -44,9 +49,9 @@ function fix_dir(){
 function expand_dir(){
     dir="$1"
     limit="$2"
-    moredir="better$dir"
+    moredir="thumbs-$dir"
 
-    count=$(find "$moredir" | grep '[0-9][.]jpg$' | wc -l)
+    count=$(find "$moredir" | grep '[0-9][.]jpg$' | wc -l || true)
     if [ $count -gt $limit ]
     then
         echo "$dir already done $count"
@@ -67,9 +72,9 @@ function expand_dir(){
 }
 
 function expand_all(){
-    for limit in `seq 200 10 500`
+    for limit in `seq 500 500`
     do
-        ls -d thumbs/*/ |
+        ls -d mostviewed/*/ |
             shuf |
             (
                 IFS=$'\n'
