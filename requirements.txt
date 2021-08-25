@@ -94,7 +94,7 @@ smmap2==2.0.5
 stevedore==1.31.0
 TBB==0.1
 tensorboard==2.1.0
-tensorflow==2.1.0
+tensorflow==2.5.1
 tensorflow-estimator==2.1.0
 termcolor==1.1.0
 terminado==0.8.3
